@@ -6,14 +6,14 @@
 name=ODKConnector
 qgisMinimumVersion=3.0
 description=Plugin to connect to the ODK (Open Data Kit) for data retrieval.
-version=0.1
+version=0.5
 author=Derrick Demeveng
 email=demeveng@gmail.com
 
 about=This plugIn connects you to your ODK instance using API link and form id and then loads the data to QGIS in shapefile, geopackage or csv.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/DemevengDerrick/odkconnector
+repository=https://github.com/DemevengDerrick/odkconnector
 # End of mandatory metadata
 
 # Recommended items:
@@ -25,7 +25,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=python, ODK, Open Data Kit, connector
 
-homepage=http://homepage
+homepage=https://demevengderrick.gitbook.io/odkconnector/
 category=Plugins
 icon=icon.png
 # experimental flag
