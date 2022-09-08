@@ -24,7 +24,7 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QVariant
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QFileDialog, QTableWidgetItem
-from qgis.core import QgsFields, QgsField, QgsFeature, QgsProject, QgsVectorFileWriter, QgsGeometry, QgsPointXY, QgsWkbTypes, QgsVectorLayer
+from qgis.core import QgsFields, QgsField, QgsFeature, QgsProject, QgsVectorFileWriter, QgsGeometry, QgsPointXY, QgsWkbTypes, QgsVectorLayer, QgsVectorDataProvider
 
 # Initialize Qt resources from file resources.py
 import requests as rq
@@ -204,6 +204,9 @@ class ODKConnector:
             self.dlg.addPcodes.toggled.connect(self.enablePcodes)
             self.dlg.closeMain.clicked.connect(self.closeWindow)
             self.dlg.runProcess.clicked.connect(self.process)
+            self.dlg.updateLayer.toggled.connect(self.layerUpdateState)
+            #self.dlg.tabWidget.currentChanged(0).connect(self.changeButtonText)
+            #self.dlg.tabWidget.currentChanged(1).connect(self.changeButtonText)
             #QMessageBox.information(self.dlg, "Message", "This is an ODK2QGIS Connector")
 
         # show the dialog
@@ -230,7 +233,10 @@ class ODKConnector:
             pwd = self.dlg.password.text()
             data = rq.get(url, auth = (user,pwd))
             #print(data)
-            self.dlg.connectionResult.setText('<span style=\" color: #006400;\">%s</span>' % ("Connection sucessful with code : "+ str(data.status_code)))
+            if data.status_code == 200:
+                self.dlg.connectionResult.setText('<span style=\" color: #006400;\">%s</span>' % ("Connection sucessful with code : "+ str(data.status_code)))
+            else:
+                self.dlg.connectionResult.setText('<span style=\" color: #ff0000;\">%s</span>' % ("Connection failed with code : "+ str(data.status_code)))
         except Exception as e:
             self.dlg.connectionResult.setText('<span style=\" color: #ff0000;\">%s</span>' % ("Connection faild with error message : "+ str(e)))
 
@@ -251,6 +257,7 @@ class ODKConnector:
         self.keysList = list() # get the keys of the data
         # get all possible keys in the json file. the looping ensures that all fields are captured when the length of the dicts are not equal
         for i in jsonData:
+            self.dlg.jsonText.appendPlainText("----" + str(list(i.values())) + "\n")
             for j in i.keys():
                 if j in self.keysList:
                     continue
@@ -320,7 +327,9 @@ class ODKConnector:
             self.dlg.geometry.setEnabled(False)
             self.dlg.latitude.setEnabled(False)
             self.dlg.longitude.setEnabled(False)
+            self.dlg.updateLayer.setEnabled(False)
         else:
+            self.dlg.updateLayer.setEnabled(True)
             self.dlg.singleGeo.setEnabled(True)
             self.geometryState()
     
@@ -336,7 +345,7 @@ class ODKConnector:
     def splitLatLongAltPrec(self):
         geometryColumn = self.dlg.geometry.currentText()
 
-    def createFeatureClass(self, filePath, format):
+    def createFeatureClass(self, filePath, format, crs):
         # define fields for feature attributes. A QgsFields object is needed
         featureFields = QgsFields()
         # populate the fields with the column names stored in Keylist
@@ -344,7 +353,7 @@ class ODKConnector:
             self.dlg.jsonText.appendPlainText(field)
             featureFields.append(QgsField(field.replace("/","_"), QVariant.String))
         
-        crs = QgsProject.instance().crs()
+        crs = crs #QgsProject.instance().crs()
         transform_context = QgsProject.instance().transformContext()
         save_options = QgsVectorFileWriter.SaveVectorOptions()
         if format == "shp":
@@ -399,24 +408,111 @@ class ODKConnector:
         self.dlg.outputFile.clear()
         self.dlg.outputFile.setText(file)
 
+    def addPcodesColumn(self):
+        pass
+
+    def closeWindow(self):
+        self.dlg.close() # Close the mainWindow. The close() function is an inbuilt function in pyqt
+    
+    def layerUpdateState(self):
+        #toggle the no-geometry combobox state
+        if self.dlg.updateLayer.isChecked():
+            # self.dlg.outputFile.setEnabled(False)
+            # self.dlg.browsOutput.setEnabled(False)
+            # self.dlg.addPcodes.setEnabled(False)
+            # self.dlg.noGeometry.setEnabled(False)
+            self.dlg.layerToUpdate.setEnabled(True)
+        else:
+            # self.dlg.outputFile.setEnabled(True)
+            # self.dlg.browsOutput.setEnabled(True)
+            # self.dlg.addPcodes.setEnabled(True)
+            # self.dlg.noGeometry.setEnabled(True)
+            self.dlg.layerToUpdate.setEnabled(False)
+
+    def updateLayer(self):
+        # get the selected layer to be updated
+        self.dlg.jsonText.appendPlainText("Update started")
+        selectedLayer = self.dlg.layerToUpdate.currentLayer()
+        self.dlg.jsonText.appendPlainText("Layer Selected")
+        caps = selectedLayer.dataProvider().capabilities() # get the supported capabilities of the dataProvider (e.g ESRI Shapefile)
+        # delete the elements in the layer
+        if caps & QgsVectorDataProvider.DeleteFeatures:
+            self.dlg.jsonText.appendPlainText("Delete capabilities supported")
+            #check is layer is not in edit mode
+            if not selectedLayer.isEditable():
+                selectedLayer.startEditing() # start layer editing
+                for feat in selectedLayer.getFeatures():
+                    selectedLayer.deleteFeature(feat.id())
+                    self.dlg.jsonText.appendPlainText(str(feat.id()))
+                selectedLayer.commitChanges() # save edits
+            else:
+                for feat in selectedLayer.getFeatures():
+                    selectedLayer.deleteFeature(feat.id())
+                    self.dlg.jsonText.appendPlainText(str(feat.id()))
+        self.dlg.jsonText.appendPlainText("Data deleted")
+        # append new elements into the layer
+        if caps & QgsVectorDataProvider.AddFeatures:
+            fields = selectedLayer.fields()
+            # feature object
+            feat = QgsFeature(fields)
+            for row in self.dataList:
+                i = 0
+                row2 = row.copy()
+                if self.dlg.singleGeo.isChecked():# do when a single column geometry is checked
+                    geomCol = self.dlg.geometry.currentText()
+                    index = self.keysList.index(geomCol)
+                    if type(row[index]) == type(list()):
+                        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(float(row[index][1]),float(row[index][0]))))
+                    else:
+                        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(float(row[index].split(" ")[1]),float(row[index].split(" ")[0]))))
+                else: # do when lon and lat columns are selected.
+                    lat = self.dlg.latitude.currentText()
+                    long = self.dlg.longitude.currentText()
+                    feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(float(lat),float(long))))
+                
+                for d in row2:
+                    if type(d) == type(list()):
+                        row2[i] = "[]"
+                    i += 1
+
+                feat.setAttributes(row2)
+                selectedLayer.dataProvider().addFeature(feat)
+            
+        selectedLayer.commitChanges()
+        self.dlg.jsonText.appendPlainText("Data Updated")
+    
+    def changeButtonText(self):
+        if self.dlg.tabWidget.currentIndex() == 0:
+            self.dlg.runProcess.setText("Run")
+        else:
+            self.dlg.runProcess.setText("Update Layer")
+
     def process(self):
-        self.dlg.progressBar.setValue(0)
-        self.dlg.processingMsg.setText("Processing...")
         try:
+            self.dlg.progressBar.setValue(0)
+            crs = self.dlg.csr.crs()
+            self.dlg.processingMsg.setText("Processing...")
             self.dlg.progressBar.setValue(10)
-            outFile = self.dlg.outputFile.text() #output file path
-            fileName = os.path.basename(outFile).split(".")[0]#output path basename
-            format = os.path.basename(outFile).split(".")[1]
-            self.dlg.progressBar.setValue(20)
+            if self.dlg.updateLayer.isChecked():
+                pass
+            else:
+                outFile = self.dlg.outputFile.text() #output file path
+                fileName = os.path.basename(outFile).split(".")[0]#output path basename
+                format = os.path.basename(outFile).split(".")[1]
+                self.dlg.progressBar.setValue(20)
 
             if self.dlg.noGeometry.isChecked():#if no geometry is required or if file has no geometry
                 self.createCSV(outFile, fileName)
                 self.dlg.progressBar.setValue(80)
+
+            elif self.dlg.updateLayer.isChecked():
+                self.updateLayer()
+
             else:
-                self.createFeatureClass(outFile, format)
+                self.createFeatureClass(outFile, format, crs)
                 self.dlg.progressBar.setValue(80)
 
-            if self.dlg.loadData.isChecked():
+            if self.dlg.loadData.isChecked() and self.dlg.updateLayer.isChecked() == False:
                 vlayer = QgsVectorLayer(outFile, fileName, "ogr") #QGIS vector data loader
                 QgsProject.instance().addMapLayer(vlayer) # adding the vector data into QGIS
                 self.dlg.progressBar.setValue(90)
@@ -426,9 +522,3 @@ class ODKConnector:
         except Exception as e:
             self.dlg.processingMsg.setText('<span style=\" color: #ff0000;\">%s</span>' % str(e))
             self.dlg.progressBar.setValue(0)
-
-    def addPcodesColumn(self):
-        pass
-
-    def closeWindow(self):
-        self.dlg.close() # Close the mainWindow. The close() function is an inbuilt function in pyqt
