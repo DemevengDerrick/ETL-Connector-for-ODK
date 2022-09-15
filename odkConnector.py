@@ -34,7 +34,7 @@ from .resources import *
 # Import the code for the dialog
 from .odkConnector_dialog import ODKConnectorDialog
 import os.path
-
+import webbrowser
 
 class ODKConnector:
     """QGIS Plugin Implementation."""
@@ -204,6 +204,7 @@ class ODKConnector:
             self.dlg.addPcodes.toggled.connect(self.enablePcodes)
             self.dlg.closeMain.clicked.connect(self.closeWindow)
             self.dlg.runProcess.clicked.connect(self.process)
+            self.dlg.help.clicked.connect(self.browser)
             self.dlg.updateLayer.toggled.connect(self.layerUpdateState)
             #self.dlg.tabWidget.currentChanged(0).connect(self.changeButtonText)
             #self.dlg.tabWidget.currentChanged(1).connect(self.changeButtonText)
@@ -267,7 +268,7 @@ class ODKConnector:
         self.dlg.jsonText.appendPlainText(str(self.keysList) + "\n") # display the columns names in the QPlaintextwiget
         #loop through the data and display the rows in the QPlaintextwidget
         for i in jsonData:
-            self.dlg.jsonText.appendPlainText(str(list(i.values())) + "\n") # display the data in the QPlaintextwiget
+            #self.dlg.jsonText.appendPlainText(str(list(i.values())) + "\n") # display the data in the QPlaintextwiget
             li = list() # list to contain row data making sure they have the same number of inputs as the number of comlumns to avoid data mismatch in the output file
 
             for j in self.keysList:
@@ -278,13 +279,17 @@ class ODKConnector:
             self.dataList.append(li)
 
         #populate the QTablewiget
+        self.columnCount = self.dlg.dataTable.columnCount()
+        for i in range(0,self.columnCount):
+            self.dlg.dataTable.removeColumn(0)
+        
         for i in range(0, len(self.keysList)): # create columns objects in the table before populating them with values
             self.dlg.dataTable.insertColumn(i)
 
-        self.dlg.dataTable.setHorizontalHeaderLabels(self.keysList) #display the columns
-        self.dlg.dataTable.setRowCount(len(self.dataList)) #set the length of the table rows
+        self.columns = self.dlg.dataTable.setHorizontalHeaderLabels(self.keysList) #display the columns
+        self.dlg.dataTable.setRowCount(20) #set the length of the table rows
         row = 0 #row number
-        for d in jsonData:# loop through the json data and populate the qtablewiget
+        for d in jsonData[0:20]:# loop through the json data and populate the qtablewiget
             column = 0
             rowKeys = d.keys()
             for key in self.keysList:
@@ -373,13 +378,18 @@ class ODKConnector:
         for row in self.dataList:
             i = 0
             row2 = row.copy()
+            self.dlg.jsonText.appendPlainText(str(row2))
             if self.dlg.singleGeo.isChecked():# do when a single column geometry is checked
                 geomCol = self.dlg.geometry.currentText()
                 index = self.keysList.index(geomCol)
                 if type(row[index]) == type(list()):
                     fet.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(float(row[index][1]),float(row[index][0]))))
+                    #self.dlg.jsonText.appendPlainText("I was here before.................LOL")
+                    #self.dlg.jsonText.appendPlainText(str(float(row[index][1])))
                 else:
+                    self.dlg.jsonText.appendPlainText(type(row))
                     fet.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(float(row[index].split(" ")[1]),float(row[index].split(" ")[0]))))
+
             else: # do when lon and lat columns are selected.
                 lat = self.dlg.latitude.currentText()
                 long = self.dlg.longitude.currentText()
@@ -391,11 +401,21 @@ class ODKConnector:
                 i += 1
 
             fet.setAttributes(row2)
+            #self.dlg.jsonText.appendPlainText(str(fet.geometry()))
+            #self.dlg.jsonText.appendPlainText(str(fet[1]))
             writer.addFeature(fet)
+            #if writer.NoError == 0:
+                #self.dlg.jsonText.appendPlainText(str(writer))
+            #else:
+                #self.dlg.jsonText.appendPlainText("There was an error in the writer")
 
         # delete the writer to flush features to disk
         del writer
-    
+        
+        #self.updateLayer2()
+        #if filePath.featureCount() == 0:
+            #self.dlg.jsonText.appendPlainText("No features created")
+
     def createCSV(self, path, filename):
         file = os.path.join(os.path.dirname(path), filename + ".csv")
         responsejson = data.json()
@@ -414,6 +434,12 @@ class ODKConnector:
     def closeWindow(self):
         self.dlg.close() # Close the mainWindow. The close() function is an inbuilt function in pyqt
     
+    def browser(self):
+        # then make a url variable
+        url = "https://demevengderrick.gitbook.io/odkconnector/"
+        # then call the default open method described above
+        webbrowser.open(url)
+    
     def layerUpdateState(self):
         #toggle the no-geometry combobox state
         if self.dlg.updateLayer.isChecked():
@@ -429,11 +455,11 @@ class ODKConnector:
             # self.dlg.noGeometry.setEnabled(True)
             self.dlg.layerToUpdate.setEnabled(False)
 
-    def updateLayer(self):
+    def updateLayer(self, selectedLayerToUpdate):
         # get the selected layer to be updated
         self.dlg.jsonText.appendPlainText("Update started")
-        selectedLayer = self.dlg.layerToUpdate.currentLayer()
         self.dlg.jsonText.appendPlainText("Layer Selected")
+        selectedLayer = selectedLayerToUpdate
         caps = selectedLayer.dataProvider().capabilities() # get the supported capabilities of the dataProvider (e.g ESRI Shapefile)
         # delete the elements in the layer
         if caps & QgsVectorDataProvider.DeleteFeatures:
@@ -493,6 +519,7 @@ class ODKConnector:
             crs = self.dlg.csr.crs()
             self.dlg.processingMsg.setText("Processing...")
             self.dlg.progressBar.setValue(10)
+            selectedLayer = self.dlg.layerToUpdate.currentLayer()
             if self.dlg.updateLayer.isChecked():
                 pass
             else:
@@ -506,10 +533,17 @@ class ODKConnector:
                 self.dlg.progressBar.setValue(80)
 
             elif self.dlg.updateLayer.isChecked():
-                self.updateLayer()
-
+                self.updateLayer(selectedLayer)
+                self.dlg.progressBar.setValue(50)
             else:
                 self.createFeatureClass(outFile, format, crs)
+                #self.dlg.jsonText.appendPlainText(str(QgsVectorLayer(outFile, fileName, "ogr").featureCount()))
+                if QgsVectorLayer(outFile, fileName, "ogr").featureCount() == 0: 
+                    # for some strange reason, the writer sometimes fail to write features to the layer//
+                    # so if this happens we use the update function to rewrite the features and for some strange reason again it works
+                    #self.dlg.jsonText.appendPlainText("No features in the layer")
+                    selectedLayer = QgsVectorLayer(outFile, fileName, "ogr")
+                    self.updateLayer(selectedLayer)
                 self.dlg.progressBar.setValue(80)
 
             if self.dlg.loadData.isChecked() and self.dlg.updateLayer.isChecked() == False:

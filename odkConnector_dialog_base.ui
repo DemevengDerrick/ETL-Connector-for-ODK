@@ -97,6 +97,41 @@
       <string>Data preview</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Table preview</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Json preview</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="tableSize">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" rowspan="3" colspan="2">
+       <widget class="QPlainTextEdit" name="jsonText">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" colspan="2">
+       <widget class="QTableWidget" name="dataTable">
+        <property name="toolTip">
+         <string>preview data table</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="2" colspan="2">
        <widget class="QFrame" name="frame_3">
         <property name="frameShape">
@@ -106,101 +141,6 @@
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QGridLayout" name="gridLayout_6">
-         <item row="2" column="0" colspan="2">
-          <widget class="QGroupBox" name="groupBox_5">
-           <property name="title">
-            <string>Admin Codes</string>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_3">
-            <item row="0" column="5">
-             <widget class="QLabel" name="label_10">
-              <property name="text">
-               <string>Admin level :</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <spacer name="horizontalSpacer_7">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="6">
-             <widget class="QComboBox" name="adminLevel">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <item>
-               <property name="text">
-                <string/>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Admin.0</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Admin.1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Admin.2</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Admin.3</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="addPcodes">
-              <property name="text">
-               <string>Add PCODE</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>Choose admin column :</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="3">
-             <widget class="QComboBox" name="adminColumn">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="4">
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
          <item row="0" column="0" colspan="2">
           <widget class="QFrame" name="frame">
            <property name="frameShape">
@@ -335,42 +275,102 @@
            </layout>
           </widget>
          </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QGroupBox" name="groupBox_5">
+           <property name="title">
+            <string>Admin Codes</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="5">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Admin level :</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="6">
+             <widget class="QComboBox" name="adminLevel">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string/>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Admin.0</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Admin.1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Admin.2</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Admin.3</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="addPcodes">
+              <property name="text">
+               <string>Add PCODE</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Choose admin column :</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <widget class="QComboBox" name="adminColumn">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="4">
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
         </layout>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Table preview</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" colspan="2">
-       <widget class="QTableWidget" name="dataTable">
-        <property name="toolTip">
-         <string>preview data table</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QLabel" name="tableSize">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" rowspan="3" colspan="2">
-       <widget class="QPlainTextEdit" name="jsonText">
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Json preview</string>
-        </property>
        </widget>
       </item>
      </layout>
