@@ -252,7 +252,7 @@ class ODKConnector:
         self.dlg.latitude.clear()
         self.dlg.longitude.clear()
         self.dlg.geometry.clear()
-        self.dlg.adminColumn.clear()
+        #self.dlg.adminColumn.clear()
         # function to preview the data in the Qplaintextwidget and the qtablewiget
         jsonData = data.json() #load the data into a json data structure
         self.keysList = list() # get the keys of the data
