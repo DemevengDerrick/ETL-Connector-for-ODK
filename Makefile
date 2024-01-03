@@ -1,11 +1,11 @@
 #/***************************************************************************
-# ODKConnector
+# ETLConnector4ODK
 #
-# This plugIn connect you to your ODK instance and then pulls forms for you to use into QGIS
+# Plugin for extraction, transformation and loading data from ODK server to QGIS
 #							 -------------------
-#		begin				: 2022-08-20
+#		begin				: 2022-10-03
 #		git sha				: $Format:%H$
-#		copyright			: (C) 2022 by DDDev
+#		copyright			: (C) 2022 by Derrick Demeveng
 #		email				: demeveng@gmail.com
 # ***************************************************************************/
 #
@@ -38,15 +38,15 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	odkConnector.py odkConnector_dialog.py
+	ETLConnector4ODK.py ETLConnector4ODK_dialog.py
 
-PLUGINNAME = odkConnector
+PLUGINNAME = ETLConnector4ODK
 
 PY_FILES = \
 	__init__.py \
-	odkConnector.py odkConnector_dialog.py
+	ETLConnector4ODK.py ETLConnector4ODK_dialog.py
 
-UI_FILES = odkConnector_dialog_base.ui
+UI_FILES = ETLConnector4ODK_dialog_base.ui
 
 EXTRAS = metadata.txt icon.png
 

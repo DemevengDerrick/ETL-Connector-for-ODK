@@ -1,7 +1,7 @@
 Plugin Builder Results
 
-Your plugin ODKConnector was created in:
-    C:/Users/Stefan/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins\odkconnector
+Your plugin ETLConnector4ODK was created in:
+    C:/Users/Stefan/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins\etlconnector4odk
 
 Your QGIS plugin directory is located at:
     C:/Users/Stefan/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins
@@ -17,11 +17,11 @@ What's Next:
 
   * Test the plugin by enabling it in the QGIS plugin manager
 
-  * Customize it by editing the implementation file: ``odkConnector.py``
+  * Customize it by editing the implementation file: ``ETLConnector4ODK.py``
 
   * Create your own custom icon, replacing the default icon.png
 
-  * Modify your user interface by opening ODKConnector_dialog_base.ui in Qt Designer
+  * Modify your user interface by opening ETLConnector4ODK_dialog_base.ui in Qt Designer
 
   * You can use the Makefile to compile your Ui and resource files when
     you make changes. This requires GNU make (gmake)

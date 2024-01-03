@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/plugins/odkConnector" >
+    <qresource prefix="/plugins/ETLConnector4ODK" >
         <file>icon.png</file>
     </qresource>
 </RCC>
